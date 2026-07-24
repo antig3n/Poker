@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RFI Trainer — 6-max</title>
+<style>
+:root{
+  --felt:#12241d; --felt-lo:#0b1813; --rail:#3a2a1c;
+  --chalk:#e8e4d9; --dim:#7d8a83; --gold:#c9a227;
+  --raise:#3f9e6b; --fold:#a8493c; --yellow:#d8b62e;
+  --line:rgba(232,228,217,.14);
+}
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:var(--felt-lo);color:var(--chalk);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:14px}
+.wrap{max-width:900px;margin:0 auto}
+
+header{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+h1{font-size:15px;margin:0;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.opts{display:flex;gap:16px;font-size:11px;color:var(--dim);flex-wrap:wrap}
+.opts label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.opts input{accent-color:var(--gold);cursor:pointer}
+
+.mode{font-size:11px;color:var(--yellow);margin-bottom:16px;letter-spacing:.06em;
+  padding:7px 10px;border-left:2px solid var(--yellow)}
+
+.stats{display:flex;gap:26px;margin-bottom:14px;font-size:11px;letter-spacing:.08em;color:var(--dim);flex-wrap:wrap}
+.stats b{color:var(--chalk);font-size:18px;display:block;letter-spacing:0;margin-top:2px}
+.stats .ok b{color:var(--raise)}
+.stats .ko b{color:var(--fold)}
+
+.bypos{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.bypos .p{border:1px solid var(--line);border-radius:4px;padding:7px 4px;text-align:center;
+  background:rgba(0,0,0,.25)}
+.bypos .p .n{font-size:10px;letter-spacing:.12em;color:var(--dim)}
+.bypos .p .v{font-size:15px;margin-top:3px;color:var(--chalk)}
+.bypos .p .c{font-size:9px;color:var(--dim);margin-top:2px}
+.bypos .p.hi .v{color:var(--raise)}
+.bypos .p.lo .v{color:var(--fold)}
+.bypos .p.na .v{color:var(--dim)}
+
+.table{position:relative;height:340px;
+  background:radial-gradient(ellipse at 50% 45%,#1a3529 0%,var(--felt) 62%,#0e1d17 100%);
+  border:11px solid var(--rail);border-radius:170px/160px;margin-bottom:22px;
+  box-shadow:inset 0 0 65px rgba(0,0,0,.55)}
+
+.seat{position:absolute;transform:translate(-50%,-50%);width:64px;text-align:center}
+.seat .box{height:26px;border:1px solid var(--line);border-radius:5px;
+  background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;
+  font-size:10px;letter-spacing:.1em;color:var(--dim)}
+.seat.hero .box{border-color:var(--gold);color:var(--gold);font-weight:700;background:rgba(201,162,39,.12)}
+.seat.folded{opacity:.28}
+.seat .act{font-size:9px;color:var(--dim);margin-top:4px;height:11px;letter-spacing:.06em}
+
+.chip{position:absolute;width:25px;height:25px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;transform:translate(-50%,-50%);
+  box-shadow:0 2px 6px rgba(0,0,0,.6);z-index:3}
+.chip.d{background:var(--chalk);color:#111}
+.chip.sb{background:#2f5f8a;color:#eaf2f8}
+.chip.bb{background:#8a2f3f;color:#f8eaee}
+
+.hand{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);display:flex;gap:9px;z-index:2}
+.card{width:54px;height:76px;border-radius:5px;background:#f4f1e8;color:#111;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:Georgia,serif;box-shadow:0 3px 12px rgba(0,0,0,.55)}
+.card .r{font-size:27px;font-weight:700;line-height:1}
+.card .s{font-size:20px;line-height:1.1}
+.card.red{color:#b3352b}
+
+.controls{display:flex;gap:12px;margin-bottom:14px}
+button.act{flex:1;padding:15px;font-family:inherit;font-size:13px;font-weight:700;
+  letter-spacing:.12em;border:1px solid;border-radius:5px;cursor:pointer;
+  background:transparent;transition:background .12s}
+button.raise{color:var(--raise);border-color:var(--raise)}
+button.raise:hover:not(:disabled){background:rgba(63,158,107,.14)}
+button.fold{color:var(--fold);border-color:var(--fold)}
+button.fold:hover:not(:disabled){background:rgba(168,73,60,.14)}
+button.act:disabled{opacity:.35;cursor:default}
+
+.fb{min-height:46px;padding:11px 14px;border-radius:5px;font-size:12px;
+  border:1px solid var(--line);display:flex;align-items:center;gap:10px;line-height:1.55}
+.fb.good{border-color:var(--raise);color:var(--raise)}
+.fb.bad{border-color:var(--fold);color:var(--fold)}
+.fb .why{color:var(--dim)}
+.fb .yel{color:var(--yellow)}
+.fb .posrev{color:var(--gold);font-weight:700}
+
+.grid-open{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
+.grid-open summary{font-size:11px;letter-spacing:.1em;color:var(--dim);cursor:pointer;text-transform:uppercase}
+.gridhead{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;
+  font-size:10px;color:var(--dim);letter-spacing:.08em}
+.grid{display:grid;grid-template-columns:repeat(13,1fr);gap:1px;margin-top:8px}
+.grid div{font-size:8px;padding:3px 0;text-align:center;background:#1b2b24;color:#5e6b64;border-radius:1px}
+.grid div.o{background:var(--raise);color:#04150c;font-weight:700}
+.grid div.y{background:var(--yellow);color:#231c00;font-weight:700}
+.grid div.hl{outline:2px solid var(--gold);outline-offset:-1px}
+.legend{display:flex;gap:16px;font-size:9px;color:var(--dim);margin-top:10px;flex-wrap:wrap;align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+@media(max-width:640px){
+  .table{height:280px;border-radius:140px/130px}
+  .seat{width:50px}
+  .seat .box{font-size:9px}
+  .card{width:44px;height:63px}
+  .card .r{font-size:22px}
+  .card .s{font-size:16px}
+  .bypos{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>RFI Trainer · 6-max</h1>
+  <div class="opts">
+    <label><input type="checkbox" id="optYellow"> VPIP PFR &lt; 20%</label>
+    <label><input type="checkbox" id="optReveal"> Afficher ma position</label>
+  </div>
+</header>
+
+<div class="mode" id="modeLine"></div>
+
+<div class="stats">
+  <div>Mains<b id="sTotal">0</b></div>
+  <div class="ok">Justes<b id="sOk">0</b></div>
+  <div class="ko">Erreurs<b id="sKo">0</b></div>
+  <div>Précision<b id="sPct">—</b></div>
+  <div>Série<b id="sStreak">0</b></div>
+  <div>Record<b id="sBest">0</b></div>
+</div>
+
+<div class="bypos" id="byPos"></div>
+
+<div class="table" id="table"></div>
+
+<div class="controls">
+  <button class="act raise" id="bRaise">&#9664;&nbsp; OPEN RAISE</button>
+  <button class="act fold" id="bFold">FOLD &nbsp;&#9654;</button>
+</div>
+
+<div class="fb" id="fb"></div>
+
+<details class="grid-open">
+  <summary>Voir la range de cette position</summary>
+  <div class="gridhead"><span id="gridLabel"></span><span id="gridPct"></span></div>
+  <div class="grid" id="grid"></div>
+  <div class="legend">
+    <span><i style="background:#3f9e6b"></i>Open</span>
+    <span><i style="background:#d8b62e"></i>Open VPIP PFR &lt; 20%</span>
+    <span><i style="background:#1b2b24"></i>Fold</span>
+  </div>
+</details>
+
+</div>
+
+<script>
+var R = "AKQJT98765432".split("");
+var SUITS = [["\u2660","b"],["\u2665","r"],["\u2666","r"],["\u2663","b"]];
+
+function P(s){ return s.split(",").map(function(x){return x.trim();}).filter(Boolean); }
+
+var RANGES = {
+  UTG:{
+    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,KQs,77,66,55,AKo,AQo,AJo,44,KQo,33,22"),
+    y:[]},
+  HJ:{
+    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,KQs,77,KJs,A5s,QJs,66,A4s,A3s,JTs,55,AKo,AQo,AJo,T9s,44,ATo,98s,KQo,33,22"),
+    y:[]},
+  CO:{
+    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,Q9s,A2s,JTs,Q8s,55,AKo,J9s,AQo,J8s,AJo,T9s,44,ATo,T8s,A9o,98s,A8o,KQo,33,97s,KJo,KTo,87s,QJo,22,86s,QTo,76s,JTo,75s,65s"),
+    y:[]},
+  BTN:{
+    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,Q7s,AQo,J8s,K4s,Q6s,AJo,J7s,K3s,Q5s,T9s,44,ATo,K2s,Q4s,T8s,A9o,Q3s,T7s,98s,A8o,KQo,Q2s,33,97s,A7o,KJo,A6o,KTo,87s,A5o,K9o,QJo,22,86s,A4o,QTo,A3o,Q9o,76s,A2o,JTo,75s,J9o,65s,T9o,64s,54s,53s,43s"),
+    y:P("J6s,J5s,J4s,T6s,J3s,96s,J2s,K8o,85s,K7o,K6o,Q8o,K5o,74s,J8o,K4o,K3o,K2o,T8o,63s,98o,87o,76o,65o")},
+  SB:{
+    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,Q7s,AQo,J8s,K4s,Q6s,AJo,K3s,Q5s,T9s,44,ATo,K2s,Q4s,T8s,A9o,Q3s,98s,A8o,KQo,Q2s,33,97s,KJo,KTo,87s,K9o,QJo,22,86s,QTo,Q9o,76s,JTo,75s,J9o,65s,T9o,54s,43s"),
+    y:P("J7s,J6s,J5s,T7s,J4s,T6s,A7o,J3s,96s,A6o,J2s,A5o,A4o,K8o,85s,A3o,K7o,A2o,Q8o,74s,J8o,64s,T8o,63s,98o,53s,87o")}
+};
+
+var ORDER = ["UTG","HJ","CO","BTN","SB","BB"];
+var RFI_POS = ["UTG","HJ","CO","BTN","SB"];
+var SEATS = [[50,90],[12,70],[16,24],[50,10],[84,24],[88,70]];
+var CHIPOFF = [[0,-27],[47,-6],[41,15],[0,27],[-41,15],[-47,-6]];
+
+var state={total:0,ok:0,ko:0,streak:0,best:0,hand:null,pos:null,answered:false,
+           byPos:{UTG:[0,0],HJ:[0,0],CO:[0,0],BTN:[0,0],SB:[0,0]}};
+
+function nCombos(h){ return h.length===2 ? 6 : (h[2]==="s" ? 4 : 12); }
+function rangePct(list){
+  var t=0; for(var i=0;i<list.length;i++) t+=nCombos(list[i]);
+  return (100*t/1326).toFixed(1);
+}
+
+function randomHand(){
+  var a=Math.floor(Math.random()*13), b=Math.floor(Math.random()*13);
+  var s1=Math.floor(Math.random()*4), s2=Math.floor(Math.random()*4);
+  if(a===b){ while(s2===s1) s2=Math.floor(Math.random()*4); }
+  var hi=Math.min(a,b), lo=Math.max(a,b);
+  var suited=(a!==b)&&(s1===s2);
+  var key = (a===b) ? R[a]+R[a] : R[hi]+R[lo]+(suited?"s":"o");
+  return {key:key,c1:[R[a],s1],c2:[R[b],s2]};
+}
+
+function yellowOn(){ return document.getElementById("optYellow").checked; }
+
+function classify(pos,key){
+  var r=RANGES[pos];
+  if(r.o.indexOf(key)>=0) return "orange";
+  if(r.y.indexOf(key)>=0) return yellowOn() ? "yellow" : "yellowOff";
+  return "no";
+}
+
+function updateMode(){
+  document.getElementById("modeLine").textContent =
+    yellowOn() ? "OPEN RAISE + OPEN VPIP PFR < 20%" : "OPEN RAISE";
+}
+
+function renderByPos(){
+  var html="";
+  for(var i=0;i<5;i++){
+    var p=RFI_POS[i];
+    var ok=state.byPos[p][0], tot=state.byPos[p][1];
+    var cls="na", val="—";
+    if(tot>0){
+      var w=Math.round(100*ok/tot);
+      val=w+"%";
+      cls = w>=90 ? "hi" : (w<75 ? "lo" : "");
+    }
+    html+='<div class="p '+cls+'"><div class="n">'+p+'</div><div class="v">'+val+
+          '</div><div class="c">'+ok+"/"+tot+'</div></div>';
+  }
+  document.getElementById("byPos").innerHTML=html;
+}
+
+function deal(){
+  state.hand=randomHand();
+  state.pos=RFI_POS[Math.floor(Math.random()*5)];
+  state.answered=false;
+  document.getElementById("bRaise").disabled=false;
+  document.getElementById("bFold").disabled=false;
+  render();
+  var fb=document.getElementById("fb");
+  fb.className="fb";
+  fb.textContent="";
+  if(document.querySelector(".grid-open").open) renderGrid();
+}
+
+function render(){
+  var reveal=document.getElementById("optReveal").checked;
+  var heroIdx=ORDER.indexOf(state.pos);
+  var rot=[];
+  for(var i=0;i<6;i++) rot.push(ORDER[(heroIdx+i)%6]);
+
+  var html="";
+  for(var i=0;i<6;i++){
+    var p=rot[i], x=SEATS[i][0], y=SEATS[i][1];
+    var isHero=(i===0);
+    var folded = !isHero && ORDER.indexOf(p) < heroIdx;
+    var label = isHero ? (reveal ? state.pos : "TOI") : "";
+    html+='<div class="seat '+(isHero?'hero':'')+' '+(folded?'folded':'')+
+      '" style="left:'+x+'%;top:'+y+'%"><div class="box">'+label+
+      '</div><div class="act">'+(folded?"fold":"")+'</div></div>';
+  }
+
+  var chips=[["BTN","d","D"],["SB","sb","SB"],["BB","bb","BB"]];
+  for(var c=0;c<3;c++){
+    var seat=rot.indexOf(chips[c][0]);
+    var cx=SEATS[seat][0], cy=SEATS[seat][1];
+    var dx=CHIPOFF[seat][0], dy=CHIPOFF[seat][1];
+    html+='<div class="chip '+chips[c][1]+'" style="left:calc('+cx+'% + '+dx+'px);top:calc('+cy+'% + '+dy+'px)">'+chips[c][2]+'</div>';
+  }
+
+  html+='<div class="hand">'+card(state.hand.c1)+card(state.hand.c2)+'</div>';
+  document.getElementById("table").innerHTML=html;
+}
+
+function card(c){
+  var sym=SUITS[c[1]][0], col=SUITS[c[1]][1];
+  return '<div class="card '+(col==="r"?"red":"")+'"><div class="r">'+c[0]+
+         '</div><div class="s">'+sym+'</div></div>';
+}
+
+function answer(didRaise){
+  if(state.answered) return;
+  state.answered=true;
+  document.getElementById("bRaise").disabled=true;
+  document.getElementById("bFold").disabled=true;
+
+  var res=classify(state.pos,state.hand.key);
+  var should=(res==="orange"||res==="yellow");
+  var correct=(didRaise===should);
+
+  state.total++;
+  state.byPos[state.pos][1]++;
+  if(correct){
+    state.ok++; state.byPos[state.pos][0]++;
+    state.streak++; if(state.streak>state.best) state.best=state.streak;
+  } else { state.ko++; state.streak=0; }
+
+  var why;
+  if(res==="orange") why=state.hand.key+" : open.";
+  else if(res==="yellow") why='<span class="yel">'+state.hand.key+' : open VPIP PFR &lt; 20%, mode actif.</span>';
+  else if(res==="yellowOff") why='<span class="yel">'+state.hand.key+' : open VPIP PFR &lt; 20% uniquement, mode inactif → fold.</span>';
+  else why=state.hand.key+" : fold.";
+
+  var fb=document.getElementById("fb");
+  fb.className="fb "+(correct?"good":"bad");
+  fb.innerHTML='<span>'+(correct?"JUSTE":"ERREUR")+'</span><span class="why">'+
+    '<span class="posrev">'+state.pos+'</span> — '+why+'</span>';
+
+  document.getElementById("sTotal").textContent=state.total;
+  document.getElementById("sOk").textContent=state.ok;
+  document.getElementById("sKo").textContent=state.ko;
+  document.getElementById("sPct").textContent=Math.round(100*state.ok/state.total)+"%";
+  document.getElementById("sStreak").textContent=state.streak;
+  document.getElementById("sBest").textContent=state.best;
+  renderByPos();
+
+  if(document.querySelector(".grid-open").open) renderGrid();
+}
+
+function renderGrid(){
+  var yOn=yellowOn();
+  var r=RANGES[state.pos];
+  var html="";
+  for(var i=0;i<13;i++){
+    for(var j=0;j<13;j++){
+      var k;
+      if(i===j) k=R[i]+R[i];
+      else if(i<j) k=R[i]+R[j]+"s";
+      else k=R[j]+R[i]+"o";
+      var cls="";
+      if(r.o.indexOf(k)>=0) cls="o";
+      else if(r.y.indexOf(k)>=0 && yOn) cls="y";
+      if(state.answered && k===state.hand.key) cls+=" hl";
+      html+='<div class="'+cls+'">'+k+'</div>';
+    }
+  }
+  document.getElementById("grid").innerHTML=html;
+  document.getElementById("gridLabel").textContent="Range "+state.pos;
+  var eff = yOn ? r.o.concat(r.y) : r.o;
+  document.getElementById("gridPct").textContent = rangePct(eff)+"% des mains";
+}
+
+document.getElementById("bRaise").onclick=function(){answer(true);};
+document.getElementById("bFold").onclick=function(){answer(false);};
+document.getElementById("optYellow").onchange=function(){
+  updateMode();
+  if(document.querySelector(".grid-open").open) renderGrid();
+};
+document.getElementById("optReveal").onchange=render;
+document.querySelector(".grid-open").addEventListener("toggle",function(e){
+  if(e.target.open) renderGrid();
+});
+
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter"||e.key===" "){
+    e.preventDefault();
+    if(state.answered) deal();
+    return;
+  }
+  if(e.key==="ArrowLeft"||e.key==="ArrowRight"||e.key==="ArrowUp"||e.key==="ArrowDown") e.preventDefault();
+  if(state.answered){
+    // fleche apres reponse = main suivante, pour enchainer sans lever les doigts
+    if(e.key==="ArrowLeft"||e.key==="ArrowRight") deal();
+    return;
+  }
+  if(e.key==="ArrowLeft"||e.key==="r"||e.key==="R") answer(true);
+  if(e.key==="ArrowRight"||e.key==="f"||e.key==="F") answer(false);
+});
+
+updateMode();
+renderByPos();
+deal();
+</script>
+</body>
+</html>
