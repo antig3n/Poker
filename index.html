@@ -23,15 +23,14 @@ h1{font-size:15px;margin:0;letter-spacing:.14em;text-transform:uppercase;font-we
 .opts label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
 .opts input{accent-color:var(--gold);cursor:pointer}
 
-.mode{font-size:11px;color:var(--yellow);margin-bottom:16px;letter-spacing:.06em;
-  padding:7px 10px;border-left:2px solid var(--yellow)}
-
 .stats{display:flex;gap:26px;margin-bottom:14px;font-size:11px;letter-spacing:.08em;color:var(--dim);flex-wrap:wrap}
 .stats b{color:var(--chalk);font-size:18px;display:block;letter-spacing:0;margin-top:2px}
 .stats .ok b{color:var(--raise)}
 .stats .ko b{color:var(--fold)}
 
-.bypos{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:20px}
+.bypos-wrap{margin-bottom:20px}
+.bypos-label{font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.bypos{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:8px}
 .bypos .p{border:1px solid var(--line);border-radius:4px;padding:7px 4px;text-align:center;
   background:rgba(0,0,0,.25)}
 .bypos .p .n{font-size:10px;letter-spacing:.12em;color:var(--dim)}
@@ -52,7 +51,9 @@ h1{font-size:15px;margin:0;letter-spacing:.14em;text-transform:uppercase;font-we
   font-size:10px;letter-spacing:.1em;color:var(--dim)}
 .seat.hero .box{border-color:var(--gold);color:var(--gold);font-weight:700;background:rgba(201,162,39,.12)}
 .seat.folded{opacity:.28}
+.seat.opener .box{border-color:var(--fold);color:var(--chalk)}
 .seat .act{font-size:9px;color:var(--dim);margin-top:4px;height:11px;letter-spacing:.06em}
+.seat.opener .act{color:var(--fold);font-weight:700}
 
 .chip{position:absolute;width:25px;height:25px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -76,6 +77,8 @@ button.act{flex:1;padding:15px;font-family:inherit;font-size:13px;font-weight:70
   background:transparent;transition:background .12s}
 button.raise{color:var(--raise);border-color:var(--raise)}
 button.raise:hover:not(:disabled){background:rgba(63,158,107,.14)}
+button.threebet{color:var(--gold);border-color:var(--gold)}
+button.threebet:hover:not(:disabled){background:rgba(201,162,39,.14)}
 button.fold{color:var(--fold);border-color:var(--fold)}
 button.fold:hover:not(:disabled){background:rgba(168,73,60,.14)}
 button.act:disabled{opacity:.35;cursor:default}
@@ -85,7 +88,6 @@ button.act:disabled{opacity:.35;cursor:default}
 .fb.good{border-color:var(--raise);color:var(--raise)}
 .fb.bad{border-color:var(--fold);color:var(--fold)}
 .fb .why{color:var(--dim)}
-.fb .yel{color:var(--yellow)}
 .fb .posrev{color:var(--gold);font-weight:700}
 
 .grid-open{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
@@ -95,12 +97,56 @@ button.act:disabled{opacity:.35;cursor:default}
 .grid{display:grid;grid-template-columns:repeat(13,1fr);gap:1px;margin-top:8px}
 .grid div{font-size:8px;padding:3px 0;text-align:center;background:#1b2b24;color:#5e6b64;border-radius:1px}
 .grid div.o{background:var(--raise);color:#04150c;font-weight:700}
-.grid div.y{background:var(--yellow);color:#231c00;font-weight:700}
+.grid div.filled{color:#f4f1e8;font-weight:700;text-shadow:0 1px 1px rgba(0,0,0,.5)}
 .grid div.hl{outline:2px solid var(--gold);outline-offset:-1px}
 .legend{display:flex;gap:16px;font-size:9px;color:var(--dim);margin-top:10px;flex-wrap:wrap;align-items:center}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
+/* ---------- screens ---------- */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ---------- menu ---------- */
+.menu-hero{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:22px}
+.menu-hero h1{font-size:15px;letter-spacing:.14em}
+.menu-hero .sub{font-size:11px;color:var(--dim);letter-spacing:.08em;margin-top:6px}
+
+.menu-lead{font-size:11px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.mcard{border:1px solid var(--line);border-radius:6px;padding:16px 15px;background:rgba(0,0,0,.25);
+  cursor:pointer;text-align:left;font-family:inherit;color:var(--chalk);
+  transition:border-color .12s,background .12s;position:relative;display:flex;flex-direction:column;gap:7px}
+.mcard:hover:not(:disabled){border-color:var(--gold);background:rgba(201,162,39,.06)}
+.mcard:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.mcard .tag{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.mcard .nm{font-size:14px;letter-spacing:.04em;font-weight:600}
+.mcard .ds{font-size:10px;color:var(--dim);line-height:1.5;letter-spacing:.02em}
+.mcard[disabled]{opacity:.4;cursor:default}
+.mcard[disabled] .soon{position:absolute;top:12px;right:13px;font-size:8px;letter-spacing:.12em;
+  color:var(--yellow);border:1px solid var(--yellow);border-radius:3px;padding:2px 5px}
+.mcard.overall{grid-column:1/-1;border-color:rgba(201,162,39,.4)}
+.mcard.overall .nm{color:var(--gold)}
+.mcard.overall:hover:not(:disabled){background:rgba(201,162,39,.1)}
+
+.menu-foot{font-size:10px;color:var(--dim);letter-spacing:.06em;line-height:1.6;
+  border-top:1px solid var(--line);padding-top:12px}
+.menu-foot kbd{font-family:inherit;border:1px solid var(--line);border-radius:3px;
+  padding:1px 5px;color:var(--chalk);font-size:9px}
+
+/* ---------- back link in trainer header ---------- */
+.back{background:none;border:none;font-family:inherit;font-size:11px;color:var(--dim);
+  cursor:pointer;letter-spacing:.08em;padding:0;display:flex;align-items:center;gap:5px}
+.back:hover{color:var(--gold)}
+
+/* ---------- tap-to-continue ---------- */
+.table.tappable,.fb.tappable{cursor:pointer}
+.next-hint{font-size:10px;color:var(--gold);letter-spacing:.1em;margin-left:auto;
+  opacity:0;transition:opacity .15s;white-space:nowrap}
+.next-hint.show{opacity:.85}
+
 @media(max-width:640px){
+  .modes{grid-template-columns:1fr}
   .table{height:280px;border-radius:140px/130px}
   .seat{width:50px}
   .seat .box{font-size:9px}
@@ -114,15 +160,59 @@ button.act:disabled{opacity:.35;cursor:default}
 <body>
 <div class="wrap">
 
+<!-- ==================== MENU ==================== -->
+<section class="screen active" id="menuScreen">
+  <div class="menu-hero">
+    <h1>Preflop Trainer · 6-max</h1>
+    <div class="sub">Choisis un mode d'entraînement</div>
+  </div>
+
+  <div class="menu-lead">Situations</div>
+  <div class="modes" id="modeGrid">
+    <button class="mcard" data-mode="rfi">
+      <span class="tag">Open</span>
+      <span class="nm">RFI</span>
+      <span class="ds">Raise First In. Personne n'est encore entré : tu open ou tu fold, sur les 5 positions.</span>
+    </button>
+    <button class="mcard" data-mode="cpfr">
+      <span class="tag">Face à un open</span>
+      <span class="nm">CPFR + 3bet</span>
+      <span class="ds">Un joueur open. Tu call (cold call) ou tu 3bet — sinon fold. Héros en BB.</span>
+    </button>
+    <button class="mcard" data-mode="threebet">
+      <span class="tag">Tu 3bet</span>
+      <span class="nm">3bet</span>
+      <span class="ds">Un joueur open et tu relances (offensif). Tu 3bet ou tu fold.</span>
+    </button>
+    <button class="mcard" data-mode="def3bet" disabled>
+      <span class="soon">Bientôt</span>
+      <span class="tag">On te 3bet</span>
+      <span class="nm">Défense vs 3bet</span>
+      <span class="ds">Tu as open, on te 3bet (défensif). Fold, call ou 4bet selon le spot.</span>
+    </button>
+    <button class="mcard overall" data-mode="overall" disabled>
+      <span class="soon">Bientôt</span>
+      <span class="tag">Tout mélangé</span>
+      <span class="nm">Overall</span>
+      <span class="ds">Situations tirées au hasard parmi les 4 modes. L'entraînement le plus proche du réel.</span>
+    </button>
+  </div>
+
+  <div class="menu-foot">
+    Clavier — 2 choix : <kbd>←</kbd> / <kbd>→</kbd> · 3 choix : <kbd>←</kbd> call · <kbd>↑</kbd> 3bet · <kbd>→</kbd> fold. <kbd>Entrée</kbd> = main suivante.<br>
+    Sur mobile : touche les boutons, puis tap l'écran pour enchaîner.
+  </div>
+</section>
+
+<!-- ==================== TRAINER ==================== -->
+<section class="screen" id="trainerScreen">
 <header>
-  <h1>RFI Trainer · 6-max</h1>
+  <button class="back" id="btnBack">&#8592; Menu</button>
+  <h1 id="trainerTitle">RFI · 6-max</h1>
   <div class="opts">
-    <label><input type="checkbox" id="optYellow"> VPIP PFR &lt; 20%</label>
     <label><input type="checkbox" id="optReveal"> Afficher ma position</label>
   </div>
 </header>
-
-<div class="mode" id="modeLine"></div>
 
 <div class="stats">
   <div>Mains<b id="sTotal">0</b></div>
@@ -133,14 +223,14 @@ button.act:disabled{opacity:.35;cursor:default}
   <div>Record<b id="sBest">0</b></div>
 </div>
 
-<div class="bypos" id="byPos"></div>
+<div class="bypos-wrap">
+  <div class="bypos-label" id="byPosLabel">Précision par position</div>
+  <div class="bypos" id="byPos"></div>
+</div>
 
 <div class="table" id="table"></div>
 
-<div class="controls">
-  <button class="act raise" id="bRaise">&#9664;&nbsp; OPEN RAISE</button>
-  <button class="act fold" id="bFold">FOLD &nbsp;&#9654;</button>
-</div>
+<div class="controls" id="controls"></div>
 
 <div class="fb" id="fb"></div>
 
@@ -150,10 +240,11 @@ button.act:disabled{opacity:.35;cursor:default}
   <div class="grid" id="grid"></div>
   <div class="legend">
     <span><i style="background:#3f9e6b"></i>Open</span>
-    <span><i style="background:#d8b62e"></i>Open VPIP PFR &lt; 20%</span>
     <span><i style="background:#1b2b24"></i>Fold</span>
   </div>
 </details>
+
+</section>
 
 </div>
 
@@ -164,21 +255,65 @@ var SUITS = [["\u2660","b"],["\u2665","r"],["\u2666","r"],["\u2663","b"]];
 function P(s){ return s.split(",").map(function(x){return x.trim();}).filter(Boolean); }
 
 var RANGES = {
-  UTG:{
-    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,KQs,77,66,55,AKo,AQo,AJo,44,KQo,33,22"),
-    y:[]},
-  HJ:{
-    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,KQs,77,KJs,A5s,QJs,66,A4s,A3s,JTs,55,AKo,AQo,AJo,T9s,44,ATo,98s,KQo,33,22"),
-    y:[]},
-  CO:{
-    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,Q9s,A2s,JTs,Q8s,55,AKo,J9s,AQo,J8s,AJo,T9s,44,ATo,T8s,A9o,98s,A8o,KQo,33,97s,KJo,KTo,87s,QJo,22,86s,QTo,76s,JTo,75s,65s"),
-    y:[]},
-  BTN:{
-    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,Q7s,AQo,J8s,K4s,Q6s,AJo,J7s,K3s,Q5s,T9s,44,ATo,K2s,Q4s,T8s,A9o,Q3s,T7s,98s,A8o,KQo,Q2s,33,97s,A7o,KJo,A6o,KTo,87s,A5o,K9o,QJo,22,86s,A4o,QTo,A3o,Q9o,76s,A2o,JTo,75s,J9o,65s,T9o,64s,54s,53s,43s"),
-    y:P("J6s,J5s,J4s,T6s,J3s,96s,J2s,K8o,85s,K7o,K6o,Q8o,K5o,74s,J8o,K4o,K3o,K2o,T8o,63s,98o,87o,76o,65o")},
+  UTG:{o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,QJs,66,A4s,A3s,A2s,55,AKo,AQo,AJo,T9s,44,KQo")},
+  HJ:{o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,QJs,66,A4s,QTs,A3s,A2s,JTs,55,AKo,AQo,AJo,T9s,44,ATo,KQo,33,KJo")},
+  CO:{o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,AQo,J8s,AJo,T9s,44,ATo,T8s,A9o,98s,A8o,KQo,33,KJo,KTo,87s,QJo,22,QTo,JTo")},
+  BTN:{o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,Q7s,AQo,J8s,K4s,Q6s,AJo,J7s,K3s,Q5s,T9s,44,ATo,K2s,Q4s,T8s,A9o,Q3s,T7s,98s,A8o,KQo,33,97s,A7o,KJo,A6o,KTo,87s,A5o,K9o,QJo,22,86s,A4o,K8o,QTo,A3o,K7o,Q9o,76s,A2o,JTo,Q8o,75s,J9o,65s,T9o,T8o,54s")},
+  SB:{o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,Q7s,AQo,J8s,K4s,Q6s,AJo,J7s,K3s,Q5s,T9s,44,ATo,J6s,K2s,Q4s,T8s,A9o,Q3s,T7s,98s,A8o,KQo,Q2s,T6s,33,97s,A7o,KJo,96s,A6o,KTo,87s,A5o,K9o,QJo,22,86s,A4o,K8o,QTo,85s,A3o,Q9o,76s,JTo,Q8o,75s,J9o,J8o,65s,T9o,64s,T8o,54s,98o,43s")}
+};
+
+/* ---- Parse une liste avec fréquences: "AA,TT:0.5" -> {AA:1, TT:0.5} ---- */
+function PW(s){
+  var d={};
+  s.split(",").forEach(function(tok){
+    tok=tok.trim(); if(!tok) return;
+    if(tok.indexOf(":")>=0){ var p=tok.split(":"); d[p[0].trim()]=parseFloat(p[1]); }
+    else d[tok]=1;
+  });
+  return d;
+}
+
+/* ==================== CPFR + 3bet (héros = BB, vs open) ==================== */
+var CPFR = {
+  "UTG/HJ":{
+    call:PW("TT,99,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,Q8s,55,J9s,AQo,J8s,AJo,T9s,44,ATo,T8s,98s,KQo,33,KJo,87s,QJo,22,76s,65s"),
+    tb:PW("AA,KK,QQ,JJ,AKs,AKo")
+  },
+  "CO":{
+    call:PW("TT:0.5,99,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,J9s,K5s,AQo:0.5,J8s,K4s,AJo,K3s,T9s,44,ATo,K2s,T8s,A9o,T7s,98s,KQo:0.5,33,97s,KJo,KTo,87s,QJo,22,86s,QTo,76s,JTo,75s,65s,64s,54s,53s,43s"),
+    tb:PW("AA,KK,QQ,JJ,TT:0.5,AKs,AQs,AKo,AQo:0.5,KQo:0.5")
+  },
+  "BTN":{
+    call:PW("88,A9s,A8s,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,J9s,K5s,Q7s,J8s,K4s,Q6s,AJo:0.5,J7s,K3s,Q5s,T9s,44,ATo:0.5,J6s,K2s,Q4s,T8s,A9o,J5s,Q3s,T7s,98s,A8o,KQo:0.5,Q2s,T6s,33,97s,A7o,KJo,96s,A6o,KTo,87s,A5o:0.5,K9o,QJo,22,86s,A4o:0.5,K8o,QTo,85s,Q9o,76s,JTo,Q8o,75s,J9o,74s,J8o,65s,T9o,64s,T8o,54s,98o,53s,43s,87o"),
+    tb:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,ATs,KQs,AKo,AQo,AJo:0.5,ATo:0.5,KQo:0.5,A5o:0.5,A4o:0.5")
+  },
+  "SB":{
+    call:PW("99:0.5,88,A9s,A8s,77,A7s,A6s,KTs:0.5,A5s,K9s,QJs:0.5,66,A4s,K8s,QTs:0.5,A3s,K7s,Q9s,A2s,JTs:0.5,K6s,Q8s,55,J9s,K5s,Q7s,J8s,K4s,Q6s,AJo:0.5,J7s,K3s,Q5s,T9s:0.5,44,ATo,J6s:0.5,K2s,Q4s,T8s,A9o,J5s:0.5,Q3s,T7s,98s:0.5,A8o,J4s:0.5,Q2s,T6s:0.5,33,97s,A7o,J3s:0.5,KJo,T5s:0.5,96s,A6o,J2s:0.5,KTo,T4s:0.5,87s:0.5,95s:0.5,A5o:0.5,K9o:0.5,QJo,T3s:0.5,22,86s,94s:0.5,A4o:0.5,K8o:0.5,QTo,T2s:0.5,85s,A3o:0.5,K7o:0.5,Q9o:0.5,76s:0.5,84s,A2o:0.5,JTo,K6o:0.5,Q8o:0.5,75s,J9o:0.5,K5o:0.5,74s,J8o:0.5,65s:0.5,T9o,64s,T8o:0.5,63s,54s:0.5,98o,53s,52s,43s,42s,32s"),
+    tb:PW("AA,KK,QQ,JJ,TT,99:0.5,AKs,AQs,AJs,ATs,KQs,KJs,KTs:0.5,QJs:0.5,QTs:0.5,JTs:0.5,AKo,AQo,AJo:0.5,T9s:0.5,J6s:0.5,J5s:0.5,98s:0.5,J4s:0.5,KQo,T6s:0.5,J3s:0.5,T5s:0.5,J2s:0.5,T4s:0.5,87s:0.5,95s:0.5,A5o:0.5,K9o:0.5,T3s:0.5,94s:0.5,A4o:0.5,K8o:0.5,T2s:0.5,A3o:0.5,K7o:0.5,Q9o:0.5,76s:0.5,A2o:0.5,K6o:0.5,Q8o:0.5,J9o:0.5,K5o:0.5,J8o:0.5,65s:0.5,T8o:0.5,54s:0.5")
+  }
+};
+var CPFR_OPENERS = {"UTG":"UTG/HJ","HJ":"UTG/HJ","CO":"CO","BTN":"BTN","SB":"SB"};
+
+/* ==================== 3bet offensif (héros IP, vs open) ==================== */
+var THREEBET = {
   SB:{
-    o:P("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,K8s,QTs,A3s,K7s,Q9s,A2s,JTs,K6s,Q8s,55,AKo,J9s,K5s,Q7s,AQo,J8s,K4s,Q6s,AJo,K3s,Q5s,T9s,44,ATo,K2s,Q4s,T8s,A9o,Q3s,98s,A8o,KQo,Q2s,33,97s,KJo,KTo,87s,K9o,QJo,22,86s,QTo,Q9o,76s,JTo,75s,J9o,65s,T9o,54s,43s"),
-    y:P("J7s,J6s,J5s,T7s,J4s,T6s,A7o,J3s,96s,A6o,J2s,A5o,A4o,K8o,85s,A3o,K7o,A2o,Q8o,74s,J8o,64s,T8o,63s,98o,53s,87o")}
+    UTG:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,KQs,AKo,AQo"),
+    HJ:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,ATs,KQs,KJs,A5s,A4s,A3s,AKo,AQo"),
+    CO:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,KQs,77,KJs,KTs,A5s,QJs,A4s,A3s,AKo,AQo,AJo,KQo"),
+    BTN:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,QTs,A3s,A2s,JTs,55,AKo,AQo,AJo,T9s,44,ATo,98s,KQo,KJo,87s,QJo,76s,65s")
+  },
+  BTN:{
+    UTG:PW("AA,KK,QQ,JJ,TT,AKs,AQs,AJs,KQs,AKo,AQo"),
+    HJ:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,ATs,KQs,KJs,A5s,A4s,A3s,AKo,AQo"),
+    CO:PW("AA,KK,QQ,JJ,TT,99,AKs,AQs,AJs,88,ATs,A9s,A8s,KQs,77,A7s,KJs,A6s,KTs,A5s,K9s,QJs,66,A4s,QTs,A3s,Q9s,A2s,JTs,AKo,J9s,AQo,AJo,T9s,ATo,98s,KQo,KJo")
+  },
+  CO:{
+    UTG:PW("AA,KK,QQ,JJ,TT,AKs,AQs,AJs,AKo,AQo"),
+    HJ:PW("AA,KK,QQ,JJ,TT,AKs,AQs,AJs,ATs,KQs,A5s,A4s,A3s,AKo,AQo")
+  },
+  HJ:{
+    UTG:PW("AA,KK,QQ,JJ,TT,AKs,AQs,AJs,AKo,AQo")
+  }
 };
 
 var ORDER = ["UTG","HJ","CO","BTN","SB","BB"];
@@ -186,10 +321,16 @@ var RFI_POS = ["UTG","HJ","CO","BTN","SB"];
 var SEATS = [[50,90],[12,70],[16,24],[50,10],[84,24],[88,70]];
 var CHIPOFF = [[0,-27],[47,-6],[41,15],[0,27],[-41,15],[-47,-6]];
 
-var state={total:0,ok:0,ko:0,streak:0,best:0,hand:null,pos:null,answered:false,
-           byPos:{UTG:[0,0],HJ:[0,0],CO:[0,0],BTN:[0,0],SB:[0,0]}};
+// état générique. hero = position du héros, opener = position de l'openeur (ou null),
+// buckets = clés des stats par sous-catégorie (positions ou openeurs selon le mode).
+var state={total:0,ok:0,ko:0,streak:0,best:0,hand:null,hero:null,opener:null,
+           answered:false,buckets:{}};
 
 function nCombos(h){ return h.length===2 ? 6 : (h[2]==="s" ? 4 : 12); }
+function rangePctW(map){
+  var t=0; for(var k in map) t+=nCombos(k)*map[k];
+  return (100*t/1326).toFixed(1);
+}
 function rangePct(list){
   var t=0; for(var i=0;i<list.length;i++) t+=nCombos(list[i]);
   return (100*t/1326).toFixed(1);
@@ -205,25 +346,20 @@ function randomHand(){
   return {key:key,c1:[R[a],s1],c2:[R[b],s2]};
 }
 
-function yellowOn(){ return document.getElementById("optYellow").checked; }
-
-function classify(pos,key){
-  var r=RANGES[pos];
-  if(r.o.indexOf(key)>=0) return "orange";
-  if(r.y.indexOf(key)>=0) return yellowOn() ? "yellow" : "yellowOff";
-  return "no";
-}
-
-function updateMode(){
-  document.getElementById("modeLine").textContent =
-    yellowOn() ? "OPEN RAISE + OPEN VPIP PFR < 20%" : "OPEN RAISE";
+// clé de stat (bucket) pour le spot courant, selon le mode
+function currentBucket(){
+  var m=MODES[currentMode];
+  return m.bucketOf ? m.bucketOf(state) : state.hero;
 }
 
 function renderByPos(){
+  var m=MODES[currentMode];
+  var labels = m.buckets || RFI_POS;
   var html="";
-  for(var i=0;i<5;i++){
-    var p=RFI_POS[i];
-    var ok=state.byPos[p][0], tot=state.byPos[p][1];
+  for(var i=0;i<labels.length;i++){
+    var p=labels[i];
+    var rec=state.buckets[p]||[0,0];
+    var ok=rec[0], tot=rec[1];
     var cls="na", val="—";
     if(tot>0){
       var w=Math.round(100*ok/tot);
@@ -237,12 +373,12 @@ function renderByPos(){
 }
 
 function deal(){
-  state.hand=randomHand();
-  state.pos=RFI_POS[Math.floor(Math.random()*5)];
+  var m=MODES[currentMode];
+  m.deal();                    // remplit state.hand, state.hero, state.opener
   state.answered=false;
-  document.getElementById("bRaise").disabled=false;
-  document.getElementById("bFold").disabled=false;
+  renderActions(false);        // (re)dessine les boutons, actifs
   render();
+  document.getElementById("table").classList.remove("tappable");
   var fb=document.getElementById("fb");
   fb.className="fb";
   fb.textContent="";
@@ -250,8 +386,10 @@ function deal(){
 }
 
 function render(){
+  var m=MODES[currentMode];
   var reveal=document.getElementById("optReveal").checked;
-  var heroIdx=ORDER.indexOf(state.pos);
+  var hero=state.hero;
+  var heroIdx=ORDER.indexOf(hero);
   var rot=[];
   for(var i=0;i<6;i++) rot.push(ORDER[(heroIdx+i)%6]);
 
@@ -259,11 +397,20 @@ function render(){
   for(var i=0;i<6;i++){
     var p=rot[i], x=SEATS[i][0], y=SEATS[i][1];
     var isHero=(i===0);
-    var folded = !isHero && ORDER.indexOf(p) < heroIdx;
-    var label = isHero ? (reveal ? state.pos : "TOI") : "";
+    var isOpener=(state.opener && p===state.opener);
+    // qui a foldé : dépend du mode
+    var folded=false, actTxt="";
+    if(m.seatState){
+      var s=m.seatState(p,isHero,isOpener);
+      folded=s.folded; actTxt=s.act;
+    } else {
+      folded = !isHero && ORDER.indexOf(p) < heroIdx;
+      actTxt = folded ? "fold" : "";
+    }
+    var label = isHero ? (reveal ? hero : "TOI") : "";
     html+='<div class="seat '+(isHero?'hero':'')+' '+(folded?'folded':'')+
-      '" style="left:'+x+'%;top:'+y+'%"><div class="box">'+label+
-      '</div><div class="act">'+(folded?"fold":"")+'</div></div>';
+      (isOpener?' opener':'')+'" style="left:'+x+'%;top:'+y+'%"><div class="box">'+label+
+      '</div><div class="act">'+actTxt+'</div></div>';
   }
 
   var chips=[["BTN","d","D"],["SB","sb","SB"],["BB","bb","BB"]];
@@ -284,33 +431,57 @@ function card(c){
          '</div><div class="s">'+sym+'</div></div>';
 }
 
-function answer(didRaise){
+// construit les boutons d'action selon le mode
+function renderActions(disabled){
+  var m=MODES[currentMode];
+  var wrap=document.getElementById("controls");
+  var html="";
+  for(var i=0;i<m.actions.length;i++){
+    var a=m.actions[i];
+    html+='<button class="act '+a.cls+'" data-act="'+a.id+'"'+(disabled?" disabled":"")+'>'+a.label+'</button>';
+  }
+  wrap.innerHTML=html;
+  var btns=wrap.querySelectorAll("button");
+  for(var b=0;b<btns.length;b++){
+    btns[b].onclick=function(e){ e.stopPropagation(); answer(this.getAttribute("data-act")); };
+  }
+}
+
+function answer(actId){
   if(state.answered) return;
   state.answered=true;
-  document.getElementById("bRaise").disabled=true;
-  document.getElementById("bFold").disabled=true;
+  renderActions(true);
 
-  var res=classify(state.pos,state.hand.key);
-  var should=(res==="orange"||res==="yellow");
-  var correct=(didRaise===should);
+  var m=MODES[currentMode];
+  var r=m.classify(state);        // {weights:{actId:poids}, best:actId}
+  var w=r.weights[actId]||0;
+  var correct = w>0;              // toute action jouée à fréquence >0 = juste
 
+  var bucket=currentBucket();
   state.total++;
-  state.byPos[state.pos][1]++;
+  if(!state.buckets[bucket]) state.buckets[bucket]=[0,0];
+  state.buckets[bucket][1]++;
   if(correct){
-    state.ok++; state.byPos[state.pos][0]++;
+    state.ok++; state.buckets[bucket][0]++;
     state.streak++; if(state.streak>state.best) state.best=state.streak;
   } else { state.ko++; state.streak=0; }
 
-  var why;
-  if(res==="orange") why=state.hand.key+" : open.";
-  else if(res==="yellow") why='<span class="yel">'+state.hand.key+' : open VPIP PFR &lt; 20%, mode actif.</span>';
-  else if(res==="yellowOff") why='<span class="yel">'+state.hand.key+' : open VPIP PFR &lt; 20% uniquement, mode inactif → fold.</span>';
-  else why=state.hand.key+" : fold.";
+  // texte feedback : détaille les fréquences si mixte
+  var acts=m.actions, parts=[];
+  for(var i=0;i<acts.length;i++){
+    var wp=r.weights[acts[i].id]||0;
+    if(wp>0) parts.push(Math.round(wp*100)+"% "+acts[i].shortLabel);
+  }
+  var mix = parts.length>1;
+  var expl = state.hand.key+" — "+parts.join(" / ");
+  var spotStr = m.spotLabel ? m.spotLabel(state) : state.hero;
 
   var fb=document.getElementById("fb");
-  fb.className="fb "+(correct?"good":"bad");
-  fb.innerHTML='<span>'+(correct?"JUSTE":"ERREUR")+'</span><span class="why">'+
-    '<span class="posrev">'+state.pos+'</span> — '+why+'</span>';
+  fb.className="fb tappable "+(correct?"good":"bad");
+  fb.innerHTML='<span>'+(correct?"JUSTE":"ERREUR")+(mix?' · mix':'')+'</span>'+
+    '<span class="why"><span class="posrev">'+spotStr+'</span> — '+expl+'</span>'+
+    '<span class="next-hint show">tap / entrée →</span>';
+  document.getElementById("table").classList.add("tappable");
 
   document.getElementById("sTotal").textContent=state.total;
   document.getElementById("sOk").textContent=state.ok;
@@ -324,8 +495,8 @@ function answer(didRaise){
 }
 
 function renderGrid(){
-  var yOn=yellowOn();
-  var r=RANGES[state.pos];
+  var m=MODES[currentMode];
+  var g=m.gridData(state);      // {weights: {handKey:{actId:poids}}, label, pct, legend:[{cls,txt}]}
   var html="";
   for(var i=0;i<13;i++){
     for(var j=0;j<13;j++){
@@ -333,49 +504,251 @@ function renderGrid(){
       if(i===j) k=R[i]+R[i];
       else if(i<j) k=R[i]+R[j]+"s";
       else k=R[j]+R[i]+"o";
-      var cls="";
-      if(r.o.indexOf(k)>=0) cls="o";
-      else if(r.y.indexOf(k)>=0 && yOn) cls="y";
+      var wm=g.weights[k];      // {actId:poids} ou undefined
+      var style="", cls="";
+      if(wm){
+        // construit un dégradé si mix, sinon couleur pleine
+        var segs=[]; var acc=0;
+        for(var ai=0; ai<m.gridActions.length; ai++){
+          var a=m.gridActions[ai];
+          var wv=wm[a.id]||0;
+          if(wv>0){ segs.push([a.color, wv]); }
+        }
+        if(segs.length===1){
+          style='background:'+segs[0][0];
+          cls="filled";
+        } else if(segs.length>1){
+          // gradient horizontal proportionnel
+          var stops=[], p=0;
+          for(var si=0; si<segs.length; si++){
+            var col=segs[si][0], frac=segs[si][1]*100;
+            stops.push(col+' '+p+'%'); p+=frac; stops.push(col+' '+p+'%');
+          }
+          style='background:linear-gradient(90deg,'+stops.join(',')+')';
+          cls="filled";
+        }
+      }
       if(state.answered && k===state.hand.key) cls+=" hl";
-      html+='<div class="'+cls+'">'+k+'</div>';
+      html+='<div class="'+cls+'" style="'+style+'">'+k+'</div>';
     }
   }
   document.getElementById("grid").innerHTML=html;
-  document.getElementById("gridLabel").textContent="Range "+state.pos;
-  var eff = yOn ? r.o.concat(r.y) : r.o;
-  document.getElementById("gridPct").textContent = rangePct(eff)+"% des mains";
+  document.getElementById("gridLabel").textContent=g.label;
+  document.getElementById("gridPct").textContent=g.pct;
+
+  // légende dynamique
+  var leg="";
+  for(var li=0; li<g.legend.length; li++){
+    leg+='<span><i style="background:'+g.legend[li].color+'"></i>'+g.legend[li].txt+'</span>';
+  }
+  document.querySelector(".legend").innerHTML=leg;
 }
 
-document.getElementById("bRaise").onclick=function(){answer(true);};
-document.getElementById("bFold").onclick=function(){answer(false);};
-document.getElementById("optYellow").onchange=function(){
-  updateMode();
-  if(document.querySelector(".grid-open").open) renderGrid();
+/* ==================== MODES + SCREEN SWITCHING ==================== */
+var COL = {open:"#3f9e6b", call:"#3f9e6b", tb:"#c9a227", fold:"#1b2b24"};
+
+function randFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+var MODES = {
+  /* ---------- RFI : héros open ou fold ---------- */
+  rfi:{
+    title:"RFI · 6-max", ready:true,
+    buckets:RFI_POS,
+    actions:[
+      {id:"open",label:"&#9664;&nbsp; OPEN",cls:"raise",shortLabel:"open"},
+      {id:"fold",label:"FOLD &nbsp;&#9654;",cls:"fold",shortLabel:"fold"}
+    ],
+    gridActions:[{id:"open",color:COL.open}],
+    deal:function(){
+      state.hand=randomHand();
+      state.hero=randFrom(RFI_POS);
+      state.opener=null;
+    },
+    bucketOf:function(s){ return s.hero; },
+    spotLabel:function(s){ return s.hero; },
+    classify:function(s){
+      var inRange = RANGES[s.hero].o.indexOf(s.hand.key)>=0;
+      return {weights: inRange ? {open:1} : {fold:1}};
+    },
+    gridData:function(s){
+      var list=RANGES[s.hero].o, w={};
+      for(var i=0;i<list.length;i++) w[list[i]]={open:1};
+      return {weights:w, label:"Range "+s.hero, pct:rangePct(list)+"% des mains",
+              legend:[{color:COL.open,txt:"Open"},{color:COL.fold,txt:"Fold"}]};
+    }
+  },
+
+  /* ---------- CPFR + 3bet : héros BB, call / 3bet / fold ---------- */
+  cpfr:{
+    title:"CPFR + 3bet · 6-max", ready:true,
+    buckets:["UTG","HJ","CO","BTN","SB"],
+    actions:[
+      {id:"call",label:"&#9664;&nbsp; CALL",cls:"raise",shortLabel:"call"},
+      {id:"tb",label:"3BET &nbsp;&#9650;",cls:"threebet",shortLabel:"3bet"},
+      {id:"fold",label:"FOLD &nbsp;&#9654;",cls:"fold",shortLabel:"fold"}
+    ],
+    gridActions:[{id:"call",color:COL.call},{id:"tb",color:COL.tb}],
+    deal:function(){
+      state.hand=randomHand();
+      state.hero="BB";
+      state.opener=randFrom(["UTG","HJ","CO","BTN","SB"]);
+    },
+    bucketOf:function(s){ return s.opener; },
+    spotLabel:function(s){ return "BB vs "+s.opener; },
+    seatState:function(p,isHero,isOpener){
+      if(isHero) return {folded:false,act:""};
+      if(isOpener) return {folded:false,act:"OPEN"};
+      return {folded:true,act:"fold"};
+    },
+    _rng:function(s){ return CPFR[CPFR_OPENERS[s.opener]]; },
+    classify:function(s){
+      var r=this._rng(s), k=s.hand.key;
+      var wc=(r.call[k]||0), wt=(r.tb[k]||0);
+      var wf=Math.max(0, 1-wc-wt);
+      var w={};
+      if(wc>0) w.call=wc; if(wt>0) w.tb=wt; if(wf>0.0001) w.fold=wf;
+      if(!w.call && !w.tb && !w.fold) w.fold=1;
+      return {weights:w};
+    },
+    gridData:function(s){
+      var r=this._rng(s), w={};
+      for(var k in r.call){ w[k]=w[k]||{}; w[k].call=r.call[k]; }
+      for(var k2 in r.tb){ w[k2]=w[k2]||{}; w[k2].tb=r.tb[k2]; }
+      return {weights:w, label:"BB vs "+s.opener,
+              pct:"call "+rangePctW(r.call)+"% · 3bet "+rangePctW(r.tb)+"%",
+              legend:[{color:COL.call,txt:"Call"},{color:COL.tb,txt:"3bet"},{color:COL.fold,txt:"Fold"}]};
+    }
+  },
+
+  /* ---------- 3bet offensif : héros IP, 3bet / fold ---------- */
+  threebet:{
+    title:"3bet · 6-max", ready:true,
+    buckets:["HJ","CO","BTN","SB"],
+    actions:[
+      {id:"tb",label:"&#9664;&nbsp; 3BET",cls:"threebet",shortLabel:"3bet"},
+      {id:"fold",label:"FOLD &nbsp;&#9654;",cls:"fold",shortLabel:"fold"}
+    ],
+    gridActions:[{id:"tb",color:COL.tb}],
+    _pairs:(function(){
+      var out=[];
+      for(var h in THREEBET) for(var o in THREEBET[h]) out.push([h,o]);
+      return out;
+    })(),
+    deal:function(){
+      state.hand=randomHand();
+      var pr=randFrom(this._pairs);
+      state.hero=pr[0]; state.opener=pr[1];
+    },
+    bucketOf:function(s){ return s.hero; },
+    spotLabel:function(s){ return s.hero+" vs "+s.opener; },
+    seatState:function(p,isHero,isOpener){
+      if(isHero) return {folded:false,act:""};
+      if(isOpener) return {folded:false,act:"OPEN"};
+      return {folded:true,act:"fold"};
+    },
+    classify:function(s){
+      var wt=(THREEBET[s.hero][s.opener][s.hand.key]||0);
+      return {weights: wt>0 ? {tb:wt, fold:Math.max(0,1-wt)} : {fold:1}};
+    },
+    gridData:function(s){
+      var r=THREEBET[s.hero][s.opener], w={};
+      for(var k in r) w[k]={tb:r[k]};
+      return {weights:w, label:s.hero+" vs "+s.opener,
+              pct:"3bet "+rangePctW(r)+"%",
+              legend:[{color:COL.tb,txt:"3bet"},{color:COL.fold,txt:"Fold"}]};
+    }
+  },
+
+  def3bet:{title:"Défense vs 3bet · 6-max", ready:false},
+  overall:{title:"Overall · 6-max", ready:false}
 };
+var currentMode="rfi";
+
+function showScreen(id){
+  var scr=document.getElementsByClassName("screen");
+  for(var i=0;i<scr.length;i++) scr[i].classList.remove("active");
+  document.getElementById(id).classList.add("active");
+}
+
+function resetStats(){
+  state.total=0; state.ok=0; state.ko=0; state.streak=0; state.best=0;
+  state.buckets={};
+  document.getElementById("sTotal").textContent=0;
+  document.getElementById("sOk").textContent=0;
+  document.getElementById("sKo").textContent=0;
+  document.getElementById("sPct").textContent="—";
+  document.getElementById("sStreak").textContent=0;
+  document.getElementById("sBest").textContent=0;
+  renderByPos();
+}
+
+function startMode(mode){
+  if(!MODES[mode] || !MODES[mode].ready) return;
+  currentMode=mode;
+  document.getElementById("trainerTitle").textContent=MODES[mode].title;
+  // libellé du panneau par-position selon le mode
+  document.getElementById("byPosLabel").textContent =
+    (mode==="cpfr") ? "Précision par openeur" :
+    (mode==="threebet") ? "Précision par position (héros)" :
+    "Précision par position";
+  resetStats();
+  showScreen("trainerScreen");
+  deal();
+}
+
+function goMenu(){ showScreen("menuScreen"); }
+
+var cards=document.querySelectorAll(".mcard");
+for(var mi=0;mi<cards.length;mi++){
+  cards[mi].addEventListener("click",function(){
+    startMode(this.getAttribute("data-mode"));
+  });
+}
+document.getElementById("btnBack").onclick=goMenu;
+
+/* ==================== TAP-TO-CONTINUE (mobile) ==================== */
+function nextHand(){ if(state.answered) deal(); }
+document.getElementById("table").addEventListener("click",nextHand);
+document.getElementById("fb").addEventListener("click",nextHand);
+
 document.getElementById("optReveal").onchange=render;
 document.querySelector(".grid-open").addEventListener("toggle",function(e){
   if(e.target.open) renderGrid();
 });
 
+// mapping touche -> id d'action, selon le nombre d'actions du mode
+function keyToAction(key){
+  var acts=MODES[currentMode].actions;
+  if(acts.length===2){
+    if(key==="ArrowLeft") return acts[0].id;
+    if(key==="ArrowRight") return acts[1].id;
+  } else if(acts.length===3){
+    if(key==="ArrowLeft") return acts[0].id;   // call
+    if(key==="ArrowUp") return acts[1].id;      // 3bet
+    if(key==="ArrowRight") return acts[2].id;   // fold
+  }
+  return null;
+}
+
 document.addEventListener("keydown",function(e){
+  if(!document.getElementById("trainerScreen").classList.contains("active")) return;
   if(e.key==="Enter"||e.key===" "){
     e.preventDefault();
     if(state.answered) deal();
     return;
   }
-  if(e.key==="ArrowLeft"||e.key==="ArrowRight"||e.key==="ArrowUp"||e.key==="ArrowDown") e.preventDefault();
+  var isArrow=(e.key==="ArrowLeft"||e.key==="ArrowRight"||e.key==="ArrowUp"||e.key==="ArrowDown");
+  if(isArrow) e.preventDefault();
   if(state.answered){
-    // fleche apres reponse = main suivante, pour enchainer sans lever les doigts
-    if(e.key==="ArrowLeft"||e.key==="ArrowRight") deal();
+    if(isArrow) deal();   // après réponse, n'importe quelle flèche = main suivante
     return;
   }
-  if(e.key==="ArrowLeft"||e.key==="r"||e.key==="R") answer(true);
-  if(e.key==="ArrowRight"||e.key==="f"||e.key==="F") answer(false);
+  var act=keyToAction(e.key);
+  if(act) answer(act);
 });
 
-updateMode();
 renderByPos();
-deal();
+showScreen("menuScreen");
 </script>
 </body>
 </html>
